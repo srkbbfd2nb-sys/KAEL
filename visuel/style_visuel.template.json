@@ -1,0 +1,33 @@
+{
+  "schema": "kael.style_visuel/1",
+  "version": "À DÉFINIR (D-14)",
+  "invariants": {
+    "technique": "À DÉFINIR — ex. illustration, photographie, rendu 3D, collage",
+    "palette": ["À DÉFINIR — codes hexadécimaux"],
+    "lumiere": "À DÉFINIR",
+    "matiere": "À DÉFINIR",
+    "cadrage": "À DÉFINIR",
+    "motifs_recurrents": ["À DÉFINIR"],
+    "signature": "À DÉFINIR — élément récurrent qui rend une image reconnaissable sans légende"
+  },
+  "variables_bornees": {
+    "humeur_selon_vecteurs": {
+      "curiosite_elevee": "À DÉFINIR",
+      "rigueur_elevee": "À DÉFINIR",
+      "empathie_elevee": "À DÉFINIR"
+    },
+    "compositions_admises": ["À DÉFINIR"],
+    "saisons_ou_series": ["À DÉFINIR"]
+  },
+  "negatifs": [
+    "visage humain photoréaliste présenté comme l'agent (si cadre_narratif = ia_native)",
+    "personne réelle ou événement réel rendu de façon photoréaliste",
+    "À DÉFINIR"
+  ],
+  "formats": {
+    "carre": { "ratio": "1:1", "usage": "fil d'actualité" },
+    "portrait": { "ratio": "4:5", "usage": "fil d'actualité vertical" },
+    "vertical": { "ratio": "9:16", "usage": "story, vidéo courte" },
+    "paysage": { "ratio": "16:9", "usage": "aperçu de lien, vidéo longue" }
+  }
+}
