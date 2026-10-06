@@ -58,6 +58,18 @@ def filtrer(signaux: list[dict], profil: list[dict], seuil: float = SEUIL_DEFAUT
     return {"retenus": retenus, "rejetes": rejetes, "seuil": seuil}
 
 
+def sujet_le_plus_proche(embedding: list[float], historique: list[dict]) -> dict:
+    """historique : [{"id", "embedding"}] — sujets publiés sur la fenêtre retenue
+    (90 jours proposés). Deux titres différents peuvent porter le même angle :
+    la comparaison se fait sur le sens, pas sur les mots."""
+    meilleur, ident = 0.0, None
+    for h in historique:
+        s = cosinus(embedding, h["embedding"])
+        if s > meilleur:
+            meilleur, ident = s, h["id"]
+    return {"similarite_sujet": round(meilleur, 4), "id": ident}
+
+
 def calibrer_seuil(scores_pertinents: list[float], scores_non_pertinents: list[float]) -> dict:
     """Choisit le seuil qui maximise l'exactitude équilibrée sur des exemples
     étiquetés à la main. Recommandation : ≥ 30 exemples de chaque classe."""

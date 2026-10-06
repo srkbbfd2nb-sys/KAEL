@@ -30,6 +30,7 @@ Poids et seuils : paliers de travail, à calibrer en Phase 5 sur données (MI-3)
 
 from __future__ import annotations
 
+import math
 import random
 from dataclasses import dataclass
 
@@ -47,6 +48,7 @@ class Parametres:
     entropie: float = 0.10
     max_publications_jour: int = 4
     ecart_min_h: float = 1.5
+    duree_rodage_j: int = 14
 
     def __post_init__(self):
         if not 0.0 <= self.entropie <= ENTROPIE_MAX:
@@ -69,15 +71,27 @@ def niveau_exploration(tirage: float, entropie: float) -> str:
     return "normal"
 
 
+def quota_rodage(quota: int, jours_compte: int | None, duree_j: int) -> int:
+    """Montée en charge d'un compte neuf : ~1/duree du quota au jour 0, plein
+    quota à la fin du rodage. Pas pour échapper à une détection — le compte est
+    déclaré — mais parce qu'un compte neuf qui publie à plein régime ressemble à
+    du spam, et que les premiers jours sont ceux où l'humain observe."""
+    if jours_compte is None or duree_j <= 0:
+        return quota
+    return max(1, math.ceil(quota * min(1.0, (jours_compte + 1) / duree_j)))
+
+
 def decider(pertinence: float, heures_silence: float, engagement_recent: float,
             publications_aujourdhui: int, en_sommeil: bool,
-            p: Parametres = Parametres(), rng: random.Random | None = None) -> dict:
+            p: Parametres = Parametres(), rng: random.Random | None = None,
+            jours_compte: int | None = None) -> dict:
     rng = rng or random.Random()
     base = {"publier": False, "p_a": 0.0, "composantes": {}, "exploration": "normal",
             "validation_requise": False}
     if en_sommeil:
         return {**base, "motif": "heures_de_sommeil"}
-    if publications_aujourdhui >= p.max_publications_jour:
+    if publications_aujourdhui >= quota_rodage(p.max_publications_jour, jours_compte,
+                                               p.duree_rodage_j):
         return {**base, "motif": "quota_journalier"}
     if heures_silence < p.ecart_min_h:
         return {**base, "motif": "ecart_minimal"}

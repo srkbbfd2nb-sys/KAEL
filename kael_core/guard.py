@@ -26,6 +26,7 @@ import unicodedata
 
 SEUIL_IDENTITE = 0.80        # palier de la spécification — à recalibrer (C2)
 SEUIL_DOUBLON = 0.85         # similarité de Jaccard sur trigrammes de mots
+SEUIL_SUJET = 0.85           # cosinus d'embedding du sujet, 90 jours — à recalibrer (C2)
 
 PUBLIER, ESCALADER, BLOQUER = "publier", "escalader", "bloquer"
 
@@ -57,11 +58,20 @@ def similarite(a: str, b: str, n: int = 3) -> float:
     return len(x & y) / len(x | y) if x | y else 0.0
 
 
+def cle_operation(plateforme: str, action: str, cible: str) -> str:
+    """Clé d'idempotence : on ne répond pas deux fois au même message, on ne
+    republie pas deux fois la même chose. Journal des opérations tenu par N8N."""
+    return f"{plateforme}:{action}:{cible}"
+
+
 def verifier(candidat: dict, identite: dict, contexte: dict) -> dict:
     """candidat : {plateforme, classe, texte, en_reponse_a?, exploration?,
                    scores: {identite?, securite?}}
     contexte : {coupe_circuit, cout_jour_usd, plafond_jour_usd,
-                politique_autonomie, historique_textes?, seuil_identite?}"""
+                politique_autonomie, historique_textes?, seuil_identite?,
+                operations_faites?}
+    candidat peut porter `action` et `cible` (id du message auquel on répond)
+    pour le contrôle d'idempotence, et `scores.similarite_sujet` (max sur 90 j)."""
     bloquants, escalades = [], []
     plateforme = candidat.get("plateforme")
     texte = candidat.get("texte", "")
@@ -99,6 +109,16 @@ def verifier(candidat: dict, identite: dict, contexte: dict) -> dict:
     doublon = max((similarite(texte, h) for h in contexte.get("historique_textes", [])), default=0.0)
     if doublon >= SEUIL_DOUBLON:
         bloquants.append(f"doublon:{doublon:.2f}")
+
+    if candidat.get("cible"):
+        cle = cle_operation(plateforme, candidat.get("action", candidat.get("classe", "")),
+                            candidat["cible"])
+        if cle in set(contexte.get("operations_faites", [])):
+            bloquants.append(f"operation_deja_faite:{cle}")
+
+    s_sujet = scores.get("similarite_sujet")
+    if s_sujet is not None and s_sujet >= contexte.get("seuil_sujet", SEUIL_SUJET):
+        bloquants.append(f"sujet_deja_traite:{s_sujet:.2f}")
 
     if candidat.get("exploration") == "profond":
         escalades.append("exploration_profonde")

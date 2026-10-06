@@ -53,11 +53,22 @@ Toutes les routes : `POST`, JSON, en-tête `Authorization: Bearer $KAEL_API_TOKE
 | `/percept/filtrer` | `signaux[{id, embedding}]`, `profil[{id, embedding, poids?}]`, `seuil?` | `retenus`, `rejetes` |
 | `/impulse/decider` | `pertinence`, `heures_silence`, `engagement_recent`, `publications_aujourdhui`, `maintenant` (ISO avec fuseau), `rythme?`, `parametres?` | `publier`, `p_a`, `composantes`, `exploration`, `validation_requise`, `motif` |
 | `/guard/verifier` | `candidat`, `identite`, `contexte` | `verdict`, `bloquants`, `escalades` |
-| `/prompt/plumitif` | `identite`, `plateforme`, `exploration?` | `prompt`, `empreinte_identite` |
+| `/prompt/plumitif` | `identite`, `plateforme`, `exploration?`, `exemples?` | `prompt`, `empreinte_identite` |
+| `/vecteurs/expression` | `declares`, `exprimes` (notés par un juge distinct sur les N derniers posts) | idem audit + `action` |
+| `/percept/sujet` | `embedding`, `historique[{id, embedding}]` (90 jours) | `similarite_sujet`, `id` |
+| `/cycle/nouveau` | `id`, `quand` | élément à l'état `brouillon` |
+| `/cycle/avancer` | `item`, `quand`, et `verdict` (GUARD) **ou** `vers` + `acteur` | élément avancé, ou 400 si la transition est interdite |
 
 Statuts d'une opération sur un dogme : `applique` · `rejete` · `audit_requis` (lancer le juge
 d'implication, rappeler la route avec `implication` renseignée) · `validation_humaine` (écrire
 `propose` dans la file de validation) · `refuse` (jugement invalide).
+
+**Machine à états d'une publication** (`cycle.py`, voir [etat_de_lart.md](etat_de_lart.md)) :
+`brouillon → verifie | en_validation | a_regenerer` → `valide | rejete` (humain seulement) →
+`planifie → publie | echec | annule`. Chaque workflow N8N prend les éléments d'un état et demande
+la transition suivante ; l'état vit dans Airtable (`Publications.etat`), jamais dans le workflow.
+La validation humaine passe par une messagerie à boutons (Telegram ou Slack : « valider » /
+« rejeter » appellent `/cycle/avancer` avec `acteur = humain:<nom>`).
 
 ## 4 · Appels LLM — séparation des rôles
 
@@ -65,7 +76,8 @@ d'implication, rappeler la route avec `implication` renseignée) · `validation_
 |---|---|---|---|
 | Stratège | rapide | signal + résumé d'identité | angle, format, classe de contenu |
 | Plumitif | profond pour threads, rapide sinon | `/prompt/plumitif` + signal encapsulé | texte |
-| Juge d'identité | rapide | grille + texte, **sans** le prompt du Plumitif | score 0–1 + justification |
+| Juge d'identité | rapide | grille + texte, **sans** le prompt du Plumitif | score par dimension (dogmes, ton, registre, interdits) + consigne de régénération par dimension en échec |
+| Juge de personnalité exprimée (hebdomadaire) | profond | les N dernières publications, **sans** les vecteurs déclarés | note 0–1 sur les 5 axes → `/vecteurs/expression` |
 | Modération | rapide | texte (+ conversation si réponse) | `ok` / `incertain` / `bloque` |
 | Classifieur de challenge | rapide | dogme + message encapsulé | `jugement` (opération, type, `question_nature_ia`) |
 | Juge d'implication (Tension 1b, A) | profond | dogme + enrichissement proposé, **sans** l'historique | `neutre` / `affaiblit` / `renverse` |

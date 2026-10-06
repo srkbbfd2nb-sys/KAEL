@@ -1,0 +1,43 @@
+name: vérification
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  moteur:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Installer pytest
+        run: pip install --quiet pytest
+
+      - name: Tests du moteur de décision
+        run: python -m pytest tests -q
+
+      # Le gabarit doit rester valide en forme, et refusé en production tant que
+      # les décisions humaines ne sont pas prises.
+      - name: Le gabarit d'identité est valide mais pas prêt
+        run: |
+          python -m kael_core valider identite/identite.template.json
+          python -m kael_core valider identite/identite.template.json --strict && code=0 || code=$?
+          [ "$code" -eq 1 ] || { echo "ÉCHEC — attendu 1 en strict, obtenu $code"; exit 1; }
+
+      - name: Le moteur n'importe que la bibliothèque standard
+        run: |
+          python3 - <<'PY'
+          import ast, pathlib, sys
+          autorises = set(sys.stdlib_module_names)
+          fautes = []
+          for f in pathlib.Path("kael_core").rglob("*.py"):
+              for n in ast.walk(ast.parse(f.read_text(encoding="utf-8"))):
+                  noms = [a.name for a in n.names] if isinstance(n, ast.Import) else \
+                         [n.module] if isinstance(n, ast.ImportFrom) and n.module and n.level == 0 else []
+                  fautes += [f"{f}: {m}" for m in noms if m.split(".")[0] not in autorises]
+          print("\n".join(fautes) or "bibliothèque standard seule")
+          sys.exit(1 if fautes else 0)
+          PY

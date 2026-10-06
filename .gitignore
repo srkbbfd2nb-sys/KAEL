@@ -1,0 +1,25 @@
+# Secrets — non négociable
+.env
+.env.*
+*.env
+*.key
+*.pem
+secrets.*
+credentials*.json
+
+# Identité réelle : versionnée ici seulement si tu le décides (voir identite/README.md)
+# identite/identite.json
+
+# Généré
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+logs/
+
+# Outils locaux
+.claude/
+.vscode/
+.idea/
+.DS_Store

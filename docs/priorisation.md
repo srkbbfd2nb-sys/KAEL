@@ -276,7 +276,8 @@ narrative. Sans cette refonte, elle sort du périmètre de la Voie A.
 
 ## 5 · Correspondances V.7.0 → V.8
 
-Les sources ont été rédigées sous Protocole TJ V.7.0. Le dépôt porte la V.8 :
+Les sources ont été rédigées sous Protocole TJ V.7.0. Le protocole en est aujourd'hui à la V.8
+(dépôt `protocol`, distinct de celui-ci) :
 
 | Source (V.7.0) | V.8 | Effet sur KAEL |
 |---|---|---|

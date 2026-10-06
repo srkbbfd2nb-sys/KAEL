@@ -15,7 +15,7 @@ from __future__ import annotations
 import random
 from datetime import datetime
 
-from . import __version__, dogmes, guard, identite, impulse, percept, prompt, rythme, vecteurs
+from . import __version__, cycle, dogmes, guard, identite, impulse, percept, prompt, rythme, vecteurs
 
 
 class RequeteInvalide(ValueError):
@@ -77,7 +77,7 @@ def _impulse_decider(c):
     rng = random.Random(c["graine"]) if "graine" in c else None
     return impulse.decider(c["pertinence"], c["heures_silence"], c["engagement_recent"],
                            c["publications_aujourdhui"], rythme.en_sommeil(maintenant, profil),
-                           p, rng)
+                           p, rng, c.get("jours_compte"))
 
 
 def _guard_verifier(c):
@@ -88,8 +88,31 @@ def _guard_verifier(c):
 def _prompt_plumitif(c):
     _exiger(c, "identite", "plateforme")
     return {"prompt": prompt.construire(c["identite"], c["plateforme"],
-                                        c.get("exploration", "normal")),
+                                        c.get("exploration", "normal"), c.get("exemples")),
             "empreinte_identite": identite.empreinte(c["identite"])}
+
+
+def _vecteurs_expression(c):
+    _exiger(c, "declares", "exprimes")
+    return vecteurs.audit_expression(c["declares"], c["exprimes"])
+
+
+def _percept_sujet(c):
+    _exiger(c, "embedding", "historique")
+    return percept.sujet_le_plus_proche(c["embedding"], c["historique"])
+
+
+def _cycle_nouveau(c):
+    _exiger(c, "id", "quand")
+    return cycle.nouveau(c["id"], c["quand"])
+
+
+def _cycle_avancer(c):
+    _exiger(c, "item", "quand")
+    if "verdict" in c:
+        return cycle.appliquer_verdict(c["item"], c["verdict"], c["quand"])
+    _exiger(c, "vers", "acteur")
+    return cycle.avancer(c["item"], c["vers"], c["acteur"], c["quand"], c.get("motif", ""))
 
 
 ROUTES = {
@@ -99,6 +122,10 @@ ROUTES = {
     "/dogme/compresser": _dogme_compresser,
     "/vecteurs/moduler": _vecteurs_moduler,
     "/vecteurs/audit": _vecteurs_audit,
+    "/vecteurs/expression": _vecteurs_expression,
+    "/percept/sujet": _percept_sujet,
+    "/cycle/nouveau": _cycle_nouveau,
+    "/cycle/avancer": _cycle_avancer,
     "/percept/filtrer": _percept_filtrer,
     "/impulse/decider": _impulse_decider,
     "/guard/verifier": _guard_verifier,

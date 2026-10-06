@@ -74,6 +74,18 @@ def distance_cosinus(u: list[float], v: list[float]) -> float:
     return 1.0 - sum(a * b for a, b in zip(u, v)) / (nu * nv)
 
 
+def audit_expression(declares: dict, exprimes: dict, seuil_axe: float = SEUIL_AXE,
+                     seuil_global: float = SEUIL_GLOBAL) -> dict:
+    """Écart entre la personnalité **déclarée** (le fichier d'identité) et la
+    personnalité **exprimée**, notée sur les dernières publications par un juge
+    distinct (ou mesurée par un entretien psychométrique). `audit_derive` ne voit
+    que ce que MEMORY a écrit dans le fichier ; la dérive propre au modèle — le
+    persona qui s'efface au fil des générations — ne se voit qu'ici."""
+    r = audit_derive(exprimes, declares, seuil_axe, seuil_global)
+    r["action"] = "recalibrer_prompt" if r["alertes"] else "aucune"
+    return r
+
+
 def audit_derive(vecteurs: dict, initiaux: dict, seuil_axe: float = SEUIL_AXE,
                  seuil_global: float = SEUIL_GLOBAL) -> dict:
     """Audit hebdomadaire GUARD. `initiaux` = vecteurs de la version d'identité

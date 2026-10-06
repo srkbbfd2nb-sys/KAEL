@@ -34,3 +34,14 @@ def test_le_serveur_refuse_de_demarrer_sans_jeton(monkeypatch):
     assert serveur.main([]) == 2
     monkeypatch.setenv("KAEL_API_TOKEN", "court")
     assert serveur.main([]) == 2
+
+
+def test_cycle_par_l_api():
+    code, it = api.traiter("/cycle/nouveau", {"id": "p1", "quand": "2026-10-06"})
+    assert code == 200 and it["etat"] == "brouillon"
+    code, it = api.traiter("/cycle/avancer", {"item": it, "verdict": {"verdict": "escalader"},
+                                              "quand": "2026-10-06"})
+    assert it["etat"] == "en_validation"
+    code, r = api.traiter("/cycle/avancer", {"item": it, "vers": "valide", "acteur": "guard",
+                                             "quand": "2026-10-06"})
+    assert code == 400 and "INV.4" in r["erreur"]

@@ -89,5 +89,17 @@ Pseudonymisation, durée de conservation, pas d'étiquette péjorative stockée 
 ### D-14 — Identité visuelle · `ouverte` — bloque la Phase 3b
 Attend tes prompts architecturaux (voir [../visuel/](../visuel/)).
 
+### D-16 — Stockage à partir de la Phase 6 · `ouverte`
+Postgres + pgvector (état, journaux, recherche sémantique dans une seule base) plutôt qu'Airtable +
+base vectorielle séparée. Airtable reste le bon choix pour la V1. Voir [etat_de_lart.md](etat_de_lart.md) §5.
+
+### D-17 — Banc d'essai simulé avant la Phase 4 · `ouverte`
+Faire tourner KAEL dans un réseau social simulé (OASIS, Y Social) pour calibrer P_a et GUARD et
+mesurer la dérive exprimée, sans publier. Faisabilité à évaluer (N3).
+
+### D-18 — Agrégateur MCP pour PUBLISH (Phase 8) · `ouverte`
+Adaptateurs écrits à la main ou agrégateur d'API officielles. Recommandation (O) : adaptateur
+direct pour le MVP, réévaluer en Phase 8.
+
 ### D-15 — Ordre des annexes · `proposée`
 V4-lite → V3-M3 → Phase 3b / 8 → V3-M1 → V2 (refondue) → V3-M2 (priorisation, §1).

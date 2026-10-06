@@ -136,6 +136,15 @@ def valider(d: dict, strict: bool = False) -> list[str]:
         if inconnus:
             f.append(f"vecteurs : axes inconnus {sorted(inconnus)}")
 
+    # --- règles de style apprises (boucle de réflexion) ---------------------
+    for i, r in enumerate(d.get("regles_apprises", [])):
+        dec = r.get("decision", {}) if isinstance(r, dict) else {}
+        if not (isinstance(r, dict) and str(r.get("regle", "")).strip()):
+            f.append(f"regles_apprises[{i}] : champ « regle » vide")
+        elif not all(str(dec.get(k, "")).strip() for k in ("auteur", "date")):
+            f.append(f"regles_apprises[{i}] sans décision humaine (auteur, date) — une règle "
+                     "proposée par la réflexion n'entre pas dans l'identité sans validation")
+
     if strict and _contient_a_definir(d):
         f.append(f"des champs portent encore « {MARQUEUR_A_DEFINIR} » — décisions humaines en attente")
     return f

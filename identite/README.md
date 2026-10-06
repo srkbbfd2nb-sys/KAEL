@@ -2,7 +2,7 @@
 
 1. Copier [identite.template.json](identite.template.json) en `identite.json`.
 2. Remplacer chaque « À DÉFINIR » (les codes D-xx renvoient à [../docs/decisions.md](../docs/decisions.md)).
-3. Vérifier, depuis `kael/` :
+3. Vérifier, depuis la racine du dépôt :
 
 ```bash
 python -m kael_core valider identite/identite.json            # forme

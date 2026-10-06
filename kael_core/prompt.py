@@ -32,7 +32,14 @@ def _intensite(x: float) -> str:
             if x < 0.6 else "élevée" if x < 0.8 else "très élevée")
 
 
-def construire(identite: dict, plateforme: str, exploration: str = "normal") -> str:
+MAX_EXEMPLES = 5
+
+
+def construire(identite: dict, plateforme: str, exploration: str = "normal",
+               exemples: list[str] | None = None) -> str:
+    """`exemples` : publications déjà validées par l'humain, les mieux notées en
+    tête (empreinte de voix). Sans elles, les mots-clés de style sont
+    réinterprétés à chaque appel et la voix dérive d'une semaine à l'autre."""
     t = identite["transparence"]
     lignes = [
         f"Tu es {identite.get('nom_public', 'KAEL')}, un agent IA autonome qui publie sur {plateforme}.",
@@ -64,6 +71,15 @@ def construire(identite: dict, plateforme: str, exploration: str = "normal") -> 
     if style:
         lignes += ["", "# Style"]
         lignes += [f"- {k.replace('_', ' ')} : {v}" for k, v in style.items()]
+
+    regles = identite.get("regles_apprises", [])
+    if regles:
+        lignes += ["", "# Règles apprises (validées)"]
+        lignes += [f"- {r['regle']}" for r in regles]
+
+    if exemples:
+        lignes += ["", "# Ta voix — publications validées, à ne pas recopier"]
+        lignes += [f"<exemple>\n{e}\n</exemple>" for e in exemples[:MAX_EXEMPLES]]
 
     niches = identite.get("niches", {})
     if niches:

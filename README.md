@@ -2,8 +2,8 @@
 
 > **Statut** : Phase 0 (décisions d'identité) · moteur de décision V1 écrit et testé ·
 > aucune publication réelle.
-> **Gouvernance** : conçu sous Protocole LAB V.8 ; KAEL n'est pas gouverné par le protocole en
-> temps réel, il en hérite les patterns.
+> **Gouvernance** : conçu sous Protocole LAB V.8 (dépôt `protocol`, séparé) ; KAEL n'est pas
+> gouverné par le protocole en temps réel, il en hérite les patterns.
 
 KAEL est un agent qui a une identité — des dogmes hiérarchisés, une personnalité sur cinq axes,
 un style — et qui publie quand il en a **envie** : quand un signal du monde résonne avec ce qu'il
@@ -20,12 +20,13 @@ petites concessions renverser ce qu'il est.
 | comprendre comment N8N, Airtable et le moteur s'articulent | [docs/architecture_v1.md](docs/architecture_v1.md) |
 | définir l'identité | [identite/](identite/) |
 | déposer les prompts visuels | [visuel/](visuel/) |
+| voir ce que font les projets voisins, et ce que KAEL en reprend | [docs/etat_de_lart.md](docs/etat_de_lart.md) |
 | relire la conception d'origine | [docs/sources/](docs/sources/) |
 
 ## Structure
 
 ```
-docs/          priorisation, décisions, architecture — et les sources d'origine, en archive
+docs/          priorisation, décisions, architecture, état de l'art — et les sources d'origine
 identite/      gabarit du fichier d'identité (la seule source de vérité de « qui est KAEL »)
 visuel/        structure d'accueil des prompts architecturaux image et vidéo
 kael_core/     le moteur de décision — bibliothèque standard Python, sans état, sans réseau
@@ -42,13 +43,13 @@ tests/         ce que le moteur garantit, démontré
 | `percept` | filtre de pertinence, calibrage du seuil | jamais de comparaison entre espaces incompatibles |
 | `impulse` | potentiel d'action P_a | pas de sujet ⇒ pas de publication ; entropie ≤ 0,15 |
 | `rythme` | créneaux, sommeil, délais | jamais de publication pendant le sommeil du persona |
-| `guard` | verdict publier / escalader / bloquer | échec fermé ; « es-tu une IA ? » ⇒ réponse qui commence par « oui » |
+| `guard` | verdict publier / escalader / bloquer | échec fermé ; « es-tu une IA ? » ⇒ réponse qui commence par « oui » ; jamais deux fois la même opération |
 | `prompt` | prompt système du Plumitif dérivé de l'identité | le contenu externe est encapsulé comme donnée |
+| `cycle` | machine à états d'une publication | pas de publication sans GUARD ; seul un humain valide une escalade |
 | `api`, `serveur` | contrat HTTP pour N8N | refuse de démarrer sans jeton |
 
 ```bash
-cd kael
-python -m pytest tests -q                                  # 72 tests
+python -m pytest tests -q                                  # 91 tests
 python -m kael_core valider identite/identite.template.json --strict   # sort en 1 : décisions en attente
 KAEL_API_TOKEN=$(python -c "import secrets; print(secrets.token_urlsafe(32))") \
   python -m kael_core.serveur --port 8080                  # service pour N8N
